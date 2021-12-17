@@ -20,7 +20,7 @@ def play(message):
 
 @bot.message_handler(func=lambda message: True)
 #takes the yes or no response from the question and sorts the data by Type.
-def query1(message):
+def object_type(message):
   response = message.text
   replies.append(response)
   print(replies)
@@ -70,28 +70,60 @@ def animal_size_medium(message):
         msg = bot.reply_to(message, "Is it Green?")
         bot.register_next_step_handler(msg, animal_colour_green)
   elif replies[2] == "No":
-    msg = bot.reply_to(message, 'is it small?')
-    bot.register_next_step_handler(msg, animal_size_small)
+    size_small = type_animal[(data.Size=="Small")]
+    print("Here is the data sorted by animal size small")
+    print(size_small)
+    if len(size_small.index) == 1:
+      ans = size_small.iloc[0].Item
+      print(ans)
+      msg = bot.reply_to(message, f"I think its an {ans}. Am I right?")
+      bot.register_next_step_handler(msg, stop_bot)
+    msg = bot.reply_to(message, 'is it Grey?')
+    bot.register_next_step_handler(msg, animal_colour_grey)
 
-def animal_size_small(message):
+def animal_colour_grey(message):
   response = message.text
   replies.append(response)
   print(replies)
   if replies[3] == "Yes":
-      size_small = type_animal[(data.Size=="Small")]
-      print(size_small)
+      animal_size_small = type_animal[(data.Size=="Small")]
+      animal_colour_grey = animal_size_small[(data.Colour=="Grey")]
       print("Here is the data sorted by animal size small")
-      if len(size_small.index) == 1:
-        ans = size_small.iloc[0].Item
+      print(animal_colour_grey)
+      if len(animal_colour_grey.index) == 1:
+        ans = animal_colour_grey.iloc[0].Item
         print(ans)
         msg = bot.reply_to(message, f"I think its an {ans}. Am I right?")
         bot.register_next_step_handler(msg, stop_bot)
   elif replies[3] == "No":
-    msg = bot.reply_to(message, 'is it small?')
+    animal_size_small = type_animal[(data.Size=="Small")]
+    animal_colour_other = animal_size_small[(data.Colour!="Grey")]
+    print(animal_colour_other)
+    ans = animal_colour_other.iloc[0].Item
+    print(ans)
+    msg = bot.reply_to(message, f"I think its an {ans}. Am I right?")
     bot.register_next_step_handler(msg, stop_bot)
 
 def animal_colour_green(message):
-  bot.send_message(message.chat.id,"green")
+  replies.append(message.text)
+  if replies[3] == 'Yes':
+    animal_size_medium= type_animal[(data.Size=="Medium")]
+    animal_colour_green = animal_size_medium[(data.Colour=="Green")]
+    print("sorted by animal, size medium and colour green")
+    print(animal_colour_green)
+    if len(animal_colour_green.index) == 1:
+      ans = animal_colour_green.iloc[0].Item
+      print(ans)
+      msg = bot.reply_to(message, f"I think its an {ans}. Am I right?")
+      bot.register_next_step_handler(msg, stop_bot)
+  elif replies[3] == "No":
+    animal_size_medium= type_animal[(data.Size=="Medium")]
+    animal_colour_other = animal_size_medium[(data.Colour!="Green")]
+    print(animal_colour_other)
+    ans = animal_colour_other.iloc[0].Item
+    print(ans)
+    msg = bot.reply_to(message, f"I think its an {ans}. Am I right?")
+    bot.register_next_step_handler(msg, stop_bot)
 
 def stop_bot(message):
   if message.text != None:
