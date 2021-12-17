@@ -3,6 +3,8 @@ import telebot
 import pandas as pd
 
 data = pd.read_csv('Addendum.csv')
+type_animal = data[(data.Type=="Animal")]
+type_vegetable = data[(data.Type=="Vegetable")]
 replies = []
 
 API_KEY = os.environ['API_KEY']
@@ -17,6 +19,7 @@ def play(message):
   bot.send_message(message.chat.id, "Is it an Animal?")
 
 @bot.message_handler(func=lambda message: True)
+#takes the yes or no response from the question and sorts the data by Type.
 def query1(message):
   response = message.text
   replies.append(response)
@@ -24,67 +27,78 @@ def query1(message):
   print(data)
   if replies != None:
     if replies[0] == "Yes":
-      animal_sort = data[(data.Type=="Animal")]
       print("Here is the data sorted by Animal")
-      print(animal_sort)
+      print(type_animal)
+      msg = bot.reply_to(message, 'is it Large?')
+      bot.register_next_step_handler(msg, animal_size_large)
     elif replies[0] == "No":
-      vegetable_sort = data[(data.Type=="Vegetable")]
       print("Here is the data sorted by Vegetable")
-      print(vegetable_sort)
-  msg = bot.reply_to(message, 'is it Large?')
-  bot.register_next_step_handler(msg, query2)
-def query2(message):
-  # bot.send_message(message.chat.id,"Is it large?")
+      print(type_vegetable)
+  
+#sorts data by if its large. if theres only one response, it returns that response as a guess. 
+def animal_size_large(message):
   response = message.text
   replies.append(response)
   print(replies)
-  data1 = data[(data.Type=="Animal")]
   if replies[1] == "Yes":
-      size_large = data1[( data.Size=="Large")]
+      size_large = type_animal[(data.Size=="Large")]
       print(size_large)
+      print("Here is the data sorted by animal size large")
       if len(size_large.index) == 1:
         ans = size_large.iloc[0].Item
         print(ans)
-        bot.send_message(message.chat.id, f"I think its an {ans}. Am I right?")
+        msg = bot.reply_to(message, f"I think its an {ans}. Am I right?")
+        bot.register_next_step_handler(msg, stop_bot)
   elif replies[1] == "No":
-      vegetable_sort = data[(data.Type=="Vegetable")]
-      print("Here is the data sorted by Vegetable")
-      print(vegetable_sort)
-  # if len(size_large.index) == 1:
-  #   ans = size_large.iloc[0].Item
-  #   print(ans)
-  #   bot.send_message(message.chat.id, ans)
+      msg = bot.reply_to(message, 'is it Medium?')
+      bot.register_next_step_handler(msg, animal_size_medium)
 
-   
+def animal_size_medium(message):
+  response = message.text
+  replies.append(response)
+  print(replies)
+  if replies[2] == "Yes":
+      size_medium = type_animal[(data.Size=="Medium")]
+      print(size_medium)
+      print("Here is the data sorted by animal size medium")
+      if len(size_medium.index) == 1:
+        ans = size_medium.iloc[0].Item
+        print(ans)
+        msg = bot.reply_to(message, f"I think its an {ans}. Am I right?")
+        bot.register_next_step_handler(msg, stop_bot)
+      elif len(size_medium.index) > 1:
+        msg = bot.reply_to(message, "Is it Green?")
+        bot.register_next_step_handler(msg, animal_colour_green)
+  elif replies[2] == "No":
+    msg = bot.reply_to(message, 'is it small?')
+    bot.register_next_step_handler(msg, animal_size_small)
+
+def animal_size_small(message):
+  response = message.text
+  replies.append(response)
+  print(replies)
+  if replies[3] == "Yes":
+      size_small = type_animal[(data.Size=="Small")]
+      print(size_small)
+      print("Here is the data sorted by animal size small")
+      if len(size_small.index) == 1:
+        ans = size_small.iloc[0].Item
+        print(ans)
+        msg = bot.reply_to(message, f"I think its an {ans}. Am I right?")
+        bot.register_next_step_handler(msg, stop_bot)
+  elif replies[3] == "No":
+    msg = bot.reply_to(message, 'is it small?')
+    bot.register_next_step_handler(msg, stop_bot)
+
+def animal_colour_green(message):
+  bot.send_message(message.chat.id,"green")
+
+def stop_bot(message):
+  if message.text != None:
+    bot.stop_polling()
+    replies.clear()
+    bot.send_message(message.chat.id, "Thank you for playing!")
+    
 bot.polling()
 
-#     # if replies[message.chat.id].filter=="Type":
-#     #   if response == "Yes":
-#     #     colour = data[data['Colour'] == 'Green']
-#     #     replies[message.chat.id] = { filter: "Colour", data: colour }
-#     #     bot.send_message(message.chat.id, colour)
-# #       else:
-# #         colour = data[data['Colour'] != 'Green']
-# #       #if colour.len() > 1:
-# #         # if length of results is more than 1
-# #         # then continue filtering
-# #         # otherwise give the response
-# #         replies[message.chat.id] = { filter: "Colour", data: colour }
-# #         bot.send_message(message.chat.id, "is it Large?")
-# #       # else:
-# #       #   bot.send_message(message.chat.id, f"Is it a {}")
-
-# #   if response == 'No':
-# #   # Filter the data accordingly.
-# #     item_type = data[data['Type'] == 'Vegetable']
-# #     print(item_type)
-# #     replies[message.chat.id] = {filter:"Type", data:item_type}
-# #     bot.send_message(message.chat.id, "is it Green?")
-# #     #bot.reply_to(message, message.text)
-# #   elif response == 'Yes': 
-# #     item_type = data[data['Type'] == 'Animal'] 
-# #     print(item_type)
-# #     replies[message.chat.id] = {filter:"Type", data:item_type}
-# #     bot.send_message(message.chat.id, "is it Green?")
-# # # #filter through the csv file if it is an animal, filter by animal. 
     
